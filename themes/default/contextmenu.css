@@ -1,0 +1,67 @@
+ul {
+    list-style-type:none;
+}
+.contextmenu{
+	position:absolute;
+	background:#f0f0f0 url('images/menu.gif') repeat-y;
+	margin:0;
+	padding:2px;
+	border:1px solid #ccc;
+	/*overflow:hidden;*/
+    width:128px;
+}
+.contextmenu-item{
+	position:relative;
+	margin:0;
+	padding:0;
+	height:18px;
+	line-height:16px;
+	/*overflow:hidden;*/
+	font-size:12px;
+	cursor:pointer;
+	border:1px solid transparent;
+    width:128px;
+	_border:1px solid #f0f0f0;
+}
+.contextmenu-text{
+	position:absolute;
+	left:28px;
+	top:0;
+}
+.contextmenu-icon{
+	position:absolute;
+	width:16px;
+	height:16px;
+	top:3px;
+	left:2px;
+}
+.contextmenu-rightarrow{
+	position: absolute;
+	width:4px;
+	height:7px;
+	top:7px;
+	right:5px;
+	background:url('images/menu_rightarrow.png') no-repeat;
+}
+.contextmenu-sep{
+	margin:3px 0 3px 24px;
+	line-height:2px;
+	font-size:2px;
+	background:url('images/menu_sep.png') repeat-x;
+}
+.contextmenu-active{
+	border:1px solid #7eabcd;
+	background:#fafafa;
+	-moz-border-radius:3px;
+	-webkit-border-radius: 3px;
+}
+.contextmenu-shadow{
+	position:absolute;
+	background:#ddd;
+	-moz-border-radius:5px;
+	-webkit-border-radius: 5px;
+	-moz-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.2);
+	-webkit-box-shadow: 2px 2px 3px rgba(0, 0, 0, 0.2);
+	filter: progid:DXImageTransform.Microsoft.Blur(pixelRadius=2,MakeShadow=false,ShadowOpacity=0.2);
+}
+
