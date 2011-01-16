@@ -270,6 +270,35 @@ function Select(id, setting) {
                 rightToLeft(setting.related, id, sort);
             }
         }
+        if(setting.url) {
+            var parent = this;
+            if(setting.data) {
+                $.getJSON(setting.url, setting.data, function(data) {
+                    callback(data, parent);
+                });
+            } else {
+                $.getJSON(setting.url, function(data) {
+                    callback(data, parent);
+                });
+            }
+        }
+    }
+
+    function callback(data, parent) {
+        for(var i = 0; i < data.length; i++) {
+            if(setting.optionValue && setting.optionText) {
+                parent.append(data[i][setting.optionValue], data[i][setting.optionText]);
+            } else if (setting.optionValue) {
+                parent.append(data[i][setting.optionValue], data[i][setting.optionValue]);
+            } else if (setting.optionText) {
+                parent.append(data[i][setting.optionText], data[i][setting.optionText]);
+            } else {
+                parent.append(data[i], data[i]);
+            }
+        }
+        if(setting.sort) {
+            parent.sort(setting.sort);
+        }
     }
 
     return this;

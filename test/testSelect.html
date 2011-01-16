@@ -236,6 +236,9 @@
         <option>dfjie</option>
         <option>fjwi</option>
     </select>
+
+    <select id="s5"></select>
+    <select id="s6"></select>
 </div>
 
 <div>
@@ -267,6 +270,22 @@
     //select.sort(SORT_VAL);
     select.sort(SORT_TEXT);
     select = $S('Left', {related:'Right'});
+    $S('s5', {
+        url : 'category.json'
+    });
+    $S('s6', {
+        url : 'category1.json',
+        optionValue : 'id',
+        optionText : 'name',
+        sort : SORT_TEXT
+    });
+    var category = ["界","门","纲","目","科","属","种"];
+    document.write(category.join() + '<br/>');
+    category.sort(function(a, b) {
+        return a.localeCompare(b);
+    });
+    document.write(category.join() + '<br/>');
+
 </script>
 </body>
 </html>
