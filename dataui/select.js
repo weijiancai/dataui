@@ -2,314 +2,68 @@ var SORT_VAL = 1;
 var SORT_TEXT = 2;
 var selectMap = new Map();
 
+/**
+ * 创建Select对象，并扩展一些属性和方法
+ * @param id      Select的ID属性值
+ * @param setting Select的配置信息，包括如下信息
+ *                id          Select的ID属性值
+ *                superSelect 此Select的上级Select ID值
+ *                related     此Select的相关Select ID值
+ *                sortType    Select的排序类型：SORT_VAL 按Option的value属性值排序， SORT_TEXT ，按Option的文本值排序
+ *                url         填充Select内容的url字符串
+ *                urlData     url字符串需要传递的参数值
+ *                optionValue 填充Select时，对应的Option Value属性值
+ *                optionText  填充Select时，对应的Option 文本值
+ *
+ */
 function Select(id, setting) {
     var obj = document.getElementById(id);
     if(!obj) {
         return null;
     }
 
-    obj.map = new Map(); //用于存储数据的Map对象
-    obj.superSelect = setting ? setting.superSelect : null; // 此Select的上级Select
-    obj.related = setting ? setting.related : null;
-    obj.relatedSelect = (setting && setting.related) ? $S(setting.related) : null;  // 此Select的相关Select
-    obj.sortType = (setting && setting.sortType) ? setting.sortType : SORT_TEXT;
-    obj.url = setting ? setting.url : null;
-    obj.data = setting ? setting.data : null;
-    obj.optionValue = setting ? setting.optionValue : 'value';
-    obj.optionText = setting ? setting.optionText : 'text';
-    obj.subUrl = setting ? setting.subUrl : null;
-    obj.subData = setting ? setting.subData : null;
-    obj.subRelated = setting ? setting.subRelated : null;
-    obj.subParamName = setting ? setting.subParamName : null;
-    obj.subOptionValue = setting ? setting.subOptionValue : null;
-    obj.subOptionText = setting ? setting.subOptionText : null;
-    obj.subMap = obj.subMap ? obj.subMap : new Map();
-    obj.subSelect = (setting && setting.subSelect) ? $S(setting.subSelect, {
-        url : obj.subUrl,
-        data : obj.subData,
-        related : obj.subRelated,
-        optionValue : obj.subOptionValue,
-        optionText : obj.subOptionText,
-        paramName : obj.subParamName,
-        superSelect : id
-    }) : null;  // 此Select的下级Select
+    obj.init = function(setting) {
+        obj.map = new Map(); //用于存储数据的Map对象
+        if(setting) {
+            obj.superSelect = setting.superSelect;
+            obj.related = setting.related;
+            obj.sortType = setting.sortType;
+            obj.url = setting.url;
+            obj.urlData = setting.urlData;
+            obj.optionValue = setting.optionValue;
+            obj.optionText = setting.optionText;
 
-    obj.values = function(sp) {
-        sp = sp || ',';
-        return each(obj.options, function(option) {
-            return option.value;
-        }).join(sp);
-    };
+            obj.subSelect = setting.subSelect ? $S({
+                id : setting.subSelect,
+                url : setting.subUrl,
+                urlData : setting.subUrlData,
+                related : setting.subRelated,
+                optionValue : setting.subOptionValue,
+                optionText : setting.subOptionText,
+                paramName : setting.subParamName,
+                superSelect : obj.id,
+                sortType : setting.subSortType
+            }) : null;  // 此Select的下级Select
 
-    obj.texts = function(sp) {
-        sp = sp || ',';
-        return each(obj.options, function(option) {
-            return option.text;
-        }).join(sp);
-    };
-
-    obj.indexOfVal = function(value) {
-        var op;
-        each(obj.options, function(option) {
-            if(option.value === value) {
-                op = option;
-                return false;
-            }
-        });
-
-        return op ? op.index : -1;
-    };
-
-    obj.indexOfText = function(text) {
-        var op;
-        each(obj.options, function(option) {
-            if(option.text === text) {
-                op = option;
-                return false;
-            }
-        });
-
-        return op ? op.index : -1;
-    };
-
-    obj.exists = function(value, text) {
-        if(value && text) {
-           return this.indexOfVal(value) > -1 && this.indexOfText(text) > -1;
-        } else if (value) {
-            return this.indexOfVal(value) > -1
-        } else if (text) {
-            return this.indexOfText(text) > -1;
-        }
-        return false;
-    };
-
-    obj.empty = function() {
-        obj.options.length = 0;
-    };
-
-    obj.clearSelect = function() {
-        if(obj.multiple === true) {
-            each(obj.options, function(option) {
-                if(option.selected === true) {
-                    option.selected = false;
-                }
-            });
-        } else {
-            obj.options[0].selected = true;
-        }
-    };
-
-    obj.selectedIndexs = function(idx) {
-        if(typeof idx === 'number' && idx >=0 && idx < obj.options.length) {
-            obj.options[idx].selected = true;
-        } else if (typeof idx === 'object' && idx.splice) {
-            for(var i = 0; i < idx.length; i++) {
-                obj.options[idx[i]].selected = true;
+            if(obj.subSelect) {
+                obj.subMap = obj.subMap ? obj.subMap : new Map();
             }
         }
-        return each(obj.options, function(option) {
-            if(option.selected === true) {
-                return option.index;
-            } else {
-                return null;
-            }
-        }).join();
-    };
 
-    obj.selectedValues = function(values) {
-        return each(obj.options, function(option) {
-            if(option.selected === true) {
-                return option.value;
-            } else {
-                return null;
-            }
-        }).join();
-    };
-
-    obj.selectedTexts = function() {
-        return each(obj.options, function(option) {
-            if(option.selected === true) {
-                return option.text;
-            } else {
-                return null;
-            }
-        }).join();
-    };
-
-    obj.selectedOptions = function() {
-        return each(obj.options, function(option) {
-            if(option.selected === true) {
-                return option;
-            } else {
-                return null;
-            }
-        });
-    };
-
-    obj.val = function() {
-        if(arguments.length === 0) {
-            return obj.selectedValues();
-        } else if (typeof arguments[0] === 'number') {
-            if(arguments[0] >= 0 && arguments[0] < obj.options.length) {
-                obj.selectedIndexs(arguments[0]);
-            }
-        } else {
-            var idx = obj.indexOfVal(arguments[0]);
-            if(idx > -1) {
-                obj.selectedIndexs(idx);
-            }
-        }
-    };
-
-    obj.text = function() {
-        if(arguments.length === 0) {
-            return obj.selectedTexts();
-        } else {
-            var idx = obj.indexOfText(arguments[0]);
-            if(idx > -1) {
-                obj.selectedIndexs(idx);
-            }
-        }
-        return this;
-    };
-
-    obj.append = function(value, text, callback) {
-        if(obj.exists(value, text)) {
-            return;
-        }
-        var option;
-        if(value && text) {
-            option = new Option(text, value);
-        } else if (value) {
-            option = new Option(value, value);
-        } else if (text) {
-            option = new Option(text, text);
-        }
-
-        var superValue;
-        if(obj.superSelect) {
-            var superSelect = $S(obj.superSelect);
-            superValue = obj.map.get(option.value);
-            if(!superValue) {
-                obj.map.put(option.value, superSelect.value);
-            }
-        }
-        if(callback) {
-            callback(option, superValue);
-        } else {
-            obj.options.add(option);
-        }
-
-    };
-
-    obj.del = function(value, text) {
-        if(typeof value === 'number' && value >= 0 && value < obj.options.length) {
-            obj.ondel(obj.options[value]);
-            obj.remove(value);
-        } else if (obj.exists(value, text)) {
-            if(value && text) {
-                each(obj.options, function(option) {
-                    if(option.value === value && option.text === text) {
-                        obj.ondel(option);
-                        obj.remove(option.index);
-                        return false;
-                    }
-                });
-            } else if(value) {
-                each(obj.options, function(option) {
-                    if(option.value === value) {
-                        obj.ondel(option);
-                        obj.remove(option.index);
-                        return false;
-                    }
-                });
-            } else if (text) {
-                each(obj.options, function(option) {
-                    if(option.text === text) {
-                        obj.ondel(option);
-                        obj.remove(option.index);
-                        return false;
-                    }
-                });
-            }
-        }
-    };
-
-    obj.ondel = function(option) {
-        if(obj.superSelect) {
-            var superSelect = $S(obj.superSelect);
-            var a_object = superSelect.subMap.get(superSelect.value);
-            if(a_object) {
-                each(a_object, function(object, i) {
-                    if(object[obj.optionValue] === option.value && object[obj.optionText] === option.text) {
-                        a_object.splice(i, 1);
-                        return false;
-                    }
-                });
-            }
-        }
-    };
-
-    obj.sort = function(sortType) {
-        var map = new Map(), values = [];
-        if (sortType == SORT_VAL) {
-            each(obj.options, function(option) {
-                map.put(option.value, {value:option.value, text:option.text});
-                values.push(option.value);
-            });
-        } else if (sortType == SORT_TEXT) {
-            each(obj.options, function(option) {
-                map.put(option.text, {value:option.value, text:option.text});
-                values.push(option.text);
-            });
-        }
-
-        values.sort(function(a, b) {
-            return a.localeCompare(b);
-        });
-        for (var i = 0; i < values.length; i++) {
-            var option = map.get(values[i]);
-            obj.options[i].value = option.value;
-            obj.options[i].text = option.text;
-        }
-    };
-
-    obj.load = function(data, value, text) {
-        this.empty();
-        var i;
-        if(data) {
-            if(value && text) {
-                for(i = 0; i < data.length; i++) {
-                    obj.append(data[i][value], data[i][text]);
-                }
-            } else if (value) {
-                for(i = 0; i < data.length; i++) {
-                    obj.append(data[i][value], data[i][value]);
-                }
-            } else if (text) {
-                for(i = 0; i < data.length; i++) {
-                    obj.append(data[i][text], data[i][text]);
-                }
-            } else {
-                for(i = 0; i < data.length; i++) {
-                    obj.append(data[i], data[i]);
-                }
-            }
-        }
-    };
-
-    obj.init = function() {
-        if(obj.relatedSelect) {
+        if(obj.related) {
             obj.ondblclick = function() {
                 leftToRight(id, obj.related, obj.sortType);
             };
-            obj.relatedSelect.ondblclick = function() {
+            $S(obj.related).ondblclick = function() {
                 rightToLeft(obj.related, id, obj.sortType);
             }
         }
 
         if(obj.url) {
             $.getJSON(obj.url, obj.data, function(data) {
+                if(! (data && data.length > 0)) {
+                    return null
+                }
                 for(var i = 0; i < data.length; i++) {
                     if(obj.optionValue && obj.optionText) {
                         obj.append(data[i][obj.optionValue], data[i][obj.optionText]);
@@ -356,7 +110,227 @@ function Select(id, setting) {
         }
     };
 
-    obj.init();
+    obj.init(setting);
+
+    obj.values = function(sp) {
+        return $A(obj.options).find('value').join(sp || ',');
+    };
+
+    obj.texts = function(sp) {
+        return $A(obj.options).find('text').join(sp || ',');
+    };
+
+    obj.indexOfVal = function(value) {
+        var op = $A(obj.options).find('value', value);
+        return op ? op.index : -1;
+    };
+
+    obj.indexOfText = function(text) {
+        var op = $A(obj.options).find('text', text);
+        return op ? op.index : -1;
+    };
+
+    obj.exists = function(value, text) {
+        if(value && text) {
+           return this.indexOfVal(value) > -1 && this.indexOfText(text) > -1;
+        } else if (value) {
+            return this.indexOfVal(value) > -1
+        } else if (text) {
+            return this.indexOfText(text) > -1;
+        }
+        return false;
+    };
+
+    obj.empty = function() {
+        obj.options.length = 0;
+    };
+
+    obj.clearSelect = function() {
+        if(obj.multiple === true) {
+            $A(obj.options).each(function(option) {
+                if(option.selected === true) {
+                    option.selected = false;
+                }
+            });
+        } else {
+            obj.options[0].selected = true;
+        }
+    };
+
+    obj.selectedIndexs = function(idx) {
+        if(inScope(idx, 0, obj.options.length)) {
+            obj.options[idx].selected = true;
+        } else if (isArray(idx)) {
+            for(var i = 0; i < idx.length; i++) {
+                obj.options[idx[i]].selected = true;
+            }
+        }
+
+        return $A(obj.options).find('selected', true, 'index').join();
+    };
+
+    obj.selectedValues = function() {
+        return $A(obj.options).find('selected', true, 'value').join();
+    };
+
+    obj.selectedTexts = function() {
+        return $A(obj.options).find('selected', true, 'text').join();
+    };
+
+    obj.selectedOptions = function() {
+        return $A(obj.options).find('selected', true, 'all').join();
+    };
+
+    obj.val = function() {
+        if(arguments.length === 0) {
+            return obj.selectedValues();
+        } else if (isNumber(arguments[0])) {
+            if(inScope(arguments[0], 0, obj.options.length)) {
+                obj.selectedIndexs(arguments[0]);
+            }
+        } else {
+            var idx = obj.indexOfVal(arguments[0]);
+            if(idx > -1) {
+                obj.selectedIndexs(idx);
+            }
+        }
+    };
+
+    obj.text = function() {
+        if(arguments.length === 0) {
+            return obj.selectedTexts();
+        } else {
+            var idx = obj.indexOfText(arguments[0]);
+            if(idx > -1) {
+                obj.selectedIndexs(idx);
+            }
+        }
+    };
+
+    obj.append = function(value, text, callback) {
+        if(obj.exists(value, text)) {
+            return;
+        }
+        var option;
+        if(value && text) {
+            option = new Option(text, value);
+        } else if (value) {
+            option = new Option(value, value);
+        } else if (text) {
+            option = new Option(text, text);
+        }
+
+        var superValue;
+        if(obj.superSelect) {
+            var superSelect = $S(obj.superSelect);
+            superValue = obj.map.get(option.value);
+            if(!superValue) {
+                obj.map.put(option.value, superSelect.value);
+            }
+        }
+        if(callback) {
+            callback(option, superValue);
+        } else {
+            obj.options.add(option);
+        }
+
+    };
+
+    obj.del = function(value, text) {
+        if(typeof value === 'number' && value >= 0 && value < obj.options.length) {
+            obj.ondel(obj.options[value]);
+            obj.remove(value);
+        } else if (obj.exists(value, text)) {
+            if(value && text) {
+                $A(obj.options).each(function(option) {
+                    if(option.value === value && option.text === text) {
+                        obj.ondel(option);
+                        obj.remove(option.index);
+                        return false;
+                    }
+                });
+            } else if(value) {
+                $A(obj.options).each(function(option) {
+                    if(option.value === value) {
+                        obj.ondel(option);
+                        obj.remove(option.index);
+                        return false;
+                    }
+                });
+            } else if (text) {
+                $A(obj.options).each(function(option) {
+                    if(option.text === text) {
+                        obj.ondel(option);
+                        obj.remove(option.index);
+                        return false;
+                    }
+                });
+            }
+        }
+    };
+
+    obj.ondel = function(option) {
+        if(obj.superSelect) {
+            var superSelect = $S(obj.superSelect);
+            var a_object = superSelect.subMap.get(superSelect.value);
+            if(a_object) {
+                $A(a_object).each(function(object, i) {
+                    if(object[obj.optionValue] === option.value && object[obj.optionText] === option.text) {
+                        a_object.splice(i, 1);
+                        return false;
+                    }
+                });
+            }
+        }
+    };
+
+    obj.sort = function(sortType) {
+        var map = new Map(), values = [];
+        if (sortType == SORT_VAL) {
+            $A(obj.options).each(function(option) {
+                map.put(option.value, {value:option.value, text:option.text});
+                values.push(option.value);
+            });
+        } else if (sortType == SORT_TEXT) {
+            $A(obj.options).each(function(option) {
+                map.put(option.text, {value:option.value, text:option.text});
+                values.push(option.text);
+            });
+        }
+
+        values.sort(function(a, b) {
+            return a.localeCompare(b);
+        });
+        $A(values).each(function(object, i) {
+            var option = map.get(values[i]);
+            obj.options[i].value = option.value;
+            obj.options[i].text = option.text;
+        });
+    };
+
+    obj.load = function(data, value, text) {
+        this.empty();
+        var i;
+        if(data) {
+            if(value && text) {
+                for(i = 0; i < data.length; i++) {
+                    obj.append(data[i][value], data[i][text]);
+                }
+            } else if (value) {
+                for(i = 0; i < data.length; i++) {
+                    obj.append(data[i][value], data[i][value]);
+                }
+            } else if (text) {
+                for(i = 0; i < data.length; i++) {
+                    obj.append(data[i][text], data[i][text]);
+                }
+            } else {
+                for(i = 0; i < data.length; i++) {
+                    obj.append(data[i], data[i]);
+                }
+            }
+        }
+    };
 
     return obj;
 }
@@ -444,7 +418,7 @@ function allToRight(left, right, sortType) {
     if(sortType) {
         rightSelect.sort(sortType);
     }
-    each(array, function(value) {
+    $A(array).each(function(value) {
         rightSelect.val(value);
     });
 }
@@ -453,19 +427,27 @@ function allToLeft(right, left, sortType) {
     allToRight(right, left, sortType);
 }
 
-var $S = function(id, setting) {
-    var obj = selectMap.get(id);
-    if(obj) {
-        if(setting) {
-            for(var property in setting) {
-                obj[property] = setting[property];
-            }
-            obj.init();
-        }
-        return obj;
+/**
+ * 创建Select对象，此对象如果存在，则不会创建
+ * @param setting 如果是字符串，则为Select的ID，如果是对象，则为Select的配置信息，应包含id属性
+ * @return 返回经过扩展的Select对象
+ */
+var $S = function(setting) {
+    var obj, id;
+    if(isString(setting)) {
+        id = setting;
+        setting = null;
+    } else if (haveProperty(setting, 'id')) {
+        id = setting.id;
+    }
+    obj = selectMap.get(id);
+    if(obj && isObject(setting)) {
+        obj.init(setting);
     } else {
         obj = new Select(id, setting);
-        selectMap.put(id, obj);
+        if(obj) {
+            selectMap.put(obj.id, obj);
+        }
     }
     return obj;
 };

@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title></title>
+    <link href="../qunit/qunit.css" type="text/css" rel="stylesheet">
+    <script type="text/javascript" src="../qunit/qunit.js"></script>
+    <script type="text/javascript" src="../dataui/util.js"></script>
+    <script type="text/javascript">
+        test('isString()', function() {
+            equals(isString('string'), true);
+            equals(isString({}), false);
+            equals(isString(5), false);
+            equals(isString(function(){}), false);
+            equals(isString([]), false);
+        });
+
+        test('isNumber()', function() {
+            equals(isNumber(0), true);
+            equals(isNumber(-3), true);
+            equals(isNumber(234.2), true);
+            equals(isNumber('string'), false);
+            equals(isNumber({}), false);
+            equals(isNumber(function(){}), false);
+            equals(isNumber([]), false);
+        });
+
+        test('isObject()', function() {
+            equals(isObject({}), true);
+            equals(isObject('string'), false);
+            equals(isObject(2), false);
+            equals(isObject(function() {}), false);
+            equals(isObject([]), false);
+        });
+
+        test('isArray()', function() {
+            equals(isArray([]), true);
+            equals(isArray([1,2,3]), true);
+            equals(isArray({}), false);
+            equals(isArray('string'), false);
+            equals(isArray(2), false);
+            equals(isArray(function() {}), false);
+        });
+
+        test('isFunction()', function() {
+            function a() {}
+            equals(isFunction(a), true);
+            equals(isFunction(function() {}), true);
+            equals(isFunction([]), false);
+            equals(isFunction([1,2,3]), false);
+            equals(isFunction({}), false);
+            equals(isFunction('string'), false);
+            equals(isFunction(2), false);
+        });
+
+        test('haveProperty()', function() {
+            var obj = {id:1};
+            equals(haveProperty(obj, 'id'), true);
+            equals(haveProperty(obj, 'name'), false);
+            equals(haveProperty({}, 'id'), false);
+            equals(haveProperty(function() { this.id = 1}, 'id'), false);
+        });
+
+        test('copy()', function() {
+            var source = {id:1,name:"zhangsan"}, target = {};
+            copy(source, target);
+            equals(target.id, 1);
+            equals(target.name, 'zhangsan');
+            target = {id:2,name:'lisi'};
+            copy(source, target);
+            equals(target.id, 1);
+            equals(target.name, 'zhangsan');
+        });
+
+        test('inScope()', function() {
+            equals(inScope(2, 0, 5), true);
+            equals(inScope(0, 0, 5), true);
+            equals(inScope(5, 0, 5), false);
+            equals(inScope(9, 0, 5), false);
+        });
+    </script>
+</head>
+<body>
+<h1 id="qunit-header">QUnit Test Suite</h1>
+<h2 id="qunit-banner"></h2>
+<div id="qunit-testrunner-toolbar"></div>
+<h2 id="qunit-userAgent"></h2>
+<ol id="qunit-tests"></ol>
+<div id="qunit-fixture">test markup</div>
+</body>
+</html>
