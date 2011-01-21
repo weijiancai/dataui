@@ -199,16 +199,32 @@
         });
 
         test('load()', function() {
-            var data = ['报纸', '木浆', '其他木料','其他木制品','软木','原木','纸浆'];
-            var select = $S('s1');
-            select.load(data);
-            data = [{id:882,name:'报纸'},{id:876,name:'木浆'},{id:877,name:'其他木料'},{id:879,name:'软木'},{id:874,name:'原木'}];
-            select = $S('s2');
-            select.load(data, 'id');
-            select = $S('s3');
-            select.load(data, null, 'name');
-            select = $S('s4');
-            select.load(data, 'id', 'name');
+            var s01 =  $S('S01');
+            var data = ['报纸','木浆','软木','原木','纸浆','人造板材'];
+            s01.load(data);
+            equals(s01.values(), '报纸,木浆,软木,原木,纸浆,人造板材');
+            data = [{codeId:882,codeDesc:'报纸',buid:1},{codeId:876,codeDesc:'木浆',buid:2},{codeId:875,codeDesc:'软木',buid:3},{codeId:874,codeDesc:'原木',buid:4},{codeId:880,codeDesc:'纸浆',buid:5},{codeId:878,codeDesc:'人造板材',buid:6}];
+            var s02 = $S({id:'S02',optionValue:'codeId',optionText:'codeDesc'});
+            s02.load(data);
+            equals(s02.values(), '882,876,875,874,880,878');
+            equals(s02.texts(), '报纸,木浆,软木,原木,纸浆,人造板材');
+            /*equals(s02.options[0].buid, 1);
+            equals(s02.options[1].buid, 2);
+            equals(s02.options[2].buid, 3);
+            equals(s02.options[3].buid, 4);
+            equals(s02.options[4].buid, 5);
+            equals(s02.options[5].buid, 6);*/
+
+            s02.save('code');
+            data = ["界","门","纲","目","科","属","种"];
+            s02.load(data);
+            equals(s02.values(), "界,门,纲,目,科,属,种");
+            equals(s02.texts(), "界,门,纲,目,科,属,种");
+            s02.save('category');
+            s02.load('code');
+            equals(s02.values(), '882,876,875,874,880,878');
+            equals(s02.texts(), '报纸,木浆,软木,原木,纸浆,人造板材');
+            //equals(s02.options[0].buid, 1);
         });
 
         test('sort()', function() {
@@ -219,6 +235,15 @@
             equals(select.texts(), '原木,软木,木浆,其他木料、木粉,人造板材、胶合板、纤维板、木丝板、刨花板等木材加工品,其他木制品、软木制品,纸浆,纸、纸板,报纸、书籍、杂志等其他印刷品,其他纸制品');
             select.sort(SORT_TEXT);
             equals(select.texts(), '报纸、书籍、杂志等其他印刷品,木浆,其他木料、木粉,其他木制品、软木制品,其他纸制品,人造板材、胶合板、纤维板、木丝板、刨花板等木材加工品,软木,原木,纸、纸板,纸浆');
+        });
+
+        test('url', function() {
+            var s5 = $S({
+                id : 's5',
+                url : 'category.json'
+            });
+            equals(s5.values(), "界,门,纲,目,科,属,种");
+            equals(s5.texts(), "界,门,纲,目,科,属,种");
         });
     </script>
 </head>
@@ -232,6 +257,8 @@
 
 <div>
     <select id="S0"></select>
+    <select id="S01"></select>
+    <select id="S02"></select>
 
     <select style="width: 200px;" id="SmallFreightType">
         <option value="882">报纸、书籍、杂志等其他印刷品</option>
@@ -298,6 +325,7 @@
 
     <select id="s5"></select>
     <select id="s6"></select>
+    <select id="s7"></select>
 </div>
 
 <div>
@@ -327,9 +355,7 @@
 <script type="text/javascript">
 
     $S({id:'Left',related:'Right'});
-    /*$S('s5', {
-        url : 'category.json'
-    });
+    /*
     $S('s6', {
         url : 'category1.json',
         optionValue : 'id',

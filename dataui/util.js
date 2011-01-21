@@ -22,7 +22,7 @@ var isNumber = function (value) {
  * @return boolean true 对象类型，false 非对象类型
  */
 var isObject = function (value) {
-    return typeof value === 'object' && ! isArray(value);
+    return Boolean(value) && typeof value === 'object' && ! isArray(value);
 };
 
 /**
@@ -44,13 +44,22 @@ var isFunction = function (value) {
 };
 
 /**
+ * 判断值是否为空数组
+ * @param value 要进行判断的值
+ * @return boolean true 空数组，false 非空数组
+ */
+var isEmptyArray = function (value) {
+    return isArray(value) && value.length === 0;
+};
+
+/**
  * 判断某个对象是否拥有某个属性
  * @param obj      要判断的对象
  * @param property 要判断的属性名
  * @return boolean true 拥有此属性，false 没有此属性
  */
 var haveProperty = function (obj, property) {
-    return isObject(obj) && (property in obj);
+    return Boolean(property) && isObject(obj) && (property in obj);
 };
 
 /**

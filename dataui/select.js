@@ -52,37 +52,21 @@ function Select(id, setting) {
 
         if(obj.related) {
             obj.ondblclick = function() {
-                leftToRight(id, obj.related, obj.sortType);
+                leftToRight(obj.id, obj.related, obj.sortType);
             };
             $S(obj.related).ondblclick = function() {
-                rightToLeft(obj.related, id, obj.sortType);
+                rightToLeft(obj.related, obj.id, obj.sortType);
             }
         }
 
         if(obj.url) {
-            $.getJSON(obj.url, obj.data, function(data) {
-                if(! (data && data.length > 0)) {
-                    return null
-                }
-                for(var i = 0; i < data.length; i++) {
-                    if(obj.optionValue && obj.optionText) {
-                        obj.append(data[i][obj.optionValue], data[i][obj.optionText]);
-                    } else if (obj.optionValue) {
-                        obj.append(data[i][obj.optionValue], data[i][obj.optionValue]);
-                    } else if (obj.optionText) {
-                        obj.append(data[i][obj.optionText], data[i][obj.optionText]);
-                    } else {
-                        obj.append(data[i], data[i]);
-                    }
-                }
-                if(obj.sortType) {
-                    obj.sort(obj.sortType);
-                }
+            $.post(obj.url, obj.urlData, function(data) {
+                obj.load(data);
 
                 if(obj.subSelect) {
                     loadSubSelect(obj.options[0].value);
                 }
-            });
+            }, "json");
         }
 
         if(obj.subSelect) {
@@ -90,7 +74,7 @@ function Select(id, setting) {
                 if(obj.subSelect) {
                     var cache = obj.subMap.get(obj.value);
                     if(cache) {
-                        obj.subSelect.load(cache, obj.subOptionValue, obj.subOptionText);
+                        obj.subSelect.load(cache);
                     } else {
                         loadSubSelect(obj.value);
                     }
@@ -103,10 +87,10 @@ function Select(id, setting) {
             if(obj.subParamName) {
                 param[obj.subParamName] = encodeURI(para);
             }
-            $.getJSON(obj.subUrl, param, function(json) {
-                obj.subSelect.load(json, obj.subOptionValue, obj.subOptionText);
+            $.post(obj.subUrl, param, function(json) {
+                obj.subSelect.load(json);
                 obj.subMap.put(para, json);
-            });
+            }, 'json');
         }
     };
 
@@ -178,7 +162,7 @@ function Select(id, setting) {
     };
 
     obj.selectedOptions = function() {
-        return $A(obj.options).find('selected', true, 'all').join();
+        return $A(obj.options).find('selected', true, 'all');
     };
 
     obj.val = function() {
@@ -208,17 +192,39 @@ function Select(id, setting) {
     };
 
     obj.append = function(value, text, callback) {
-        if(obj.exists(value, text)) {
-            return;
+        var object = value, option;
+        if(isObject(object)) {
+            if(object.value && object.text && object.index) {  // Option 对象
+                value = object.value;
+                text = object.text;
+            } else {
+                var ov = obj.optionValue, ot = obj.optionText;
+                var hov = haveProperty(object, obj.optionValue);
+                var hot = haveProperty(object, obj.optionText);
+                if(ov && ot && hov && hot) {
+                    value = object[ov];
+                    text = object[ot];
+                } else if(ov && hov) {
+                    value = object[ov];
+                } else if(ot && hot) {
+                    text = object[ot];
+                } else {
+                    return;
+                }
+            }
         }
-        var option;
+        if(obj.exists(value, text))  return;
+
         if(value && text) {
             option = new Option(text, value);
         } else if (value) {
             option = new Option(value, value);
         } else if (text) {
             option = new Option(text, text);
+        } else {
+            return;
         }
+        //copy(object, option);
 
         var superValue;
         if(obj.superSelect) {
@@ -233,7 +239,6 @@ function Select(id, setting) {
         } else {
             obj.options.add(option);
         }
-
     };
 
     obj.del = function(value, text) {
@@ -308,28 +313,29 @@ function Select(id, setting) {
         });
     };
 
-    obj.load = function(data, value, text) {
-        this.empty();
-        var i;
-        if(data) {
-            if(value && text) {
-                for(i = 0; i < data.length; i++) {
-                    obj.append(data[i][value], data[i][text]);
-                }
-            } else if (value) {
-                for(i = 0; i < data.length; i++) {
-                    obj.append(data[i][value], data[i][value]);
-                }
-            } else if (text) {
-                for(i = 0; i < data.length; i++) {
-                    obj.append(data[i][text], data[i][text]);
-                }
-            } else {
-                for(i = 0; i < data.length; i++) {
-                    obj.append(data[i], data[i]);
-                }
-            }
+    obj.load = function (data) {
+        obj.empty();
+        if(isArray(data)) {
+            if(isEmptyArray(data)) return;
+        } else {
+            data = obj.map.get(data);
         }
+
+        $A(data).each(function(object) {
+            obj.append(object);
+        });
+
+        if(obj.sortType) {
+            obj.sort(obj.sortType);
+        }
+    };
+
+    obj.save = function (key) {
+        var array = [];
+        $A(obj.options).each(function(option) {
+            array.push(new Option(option.text, option.value));
+        });
+        obj.map.put(key, array);
     };
 
     return obj;

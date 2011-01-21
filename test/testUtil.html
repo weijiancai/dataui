@@ -12,6 +12,8 @@
             equals(isString(5), false);
             equals(isString(function(){}), false);
             equals(isString([]), false);
+            equals(isString(null), false);
+            equals(isString(undefined), false);
         });
 
         test('isNumber()', function() {
@@ -22,6 +24,8 @@
             equals(isNumber({}), false);
             equals(isNumber(function(){}), false);
             equals(isNumber([]), false);
+            equals(isNumber(null), false);
+            equals(isNumber(undefined), false);
         });
 
         test('isObject()', function() {
@@ -30,6 +34,8 @@
             equals(isObject(2), false);
             equals(isObject(function() {}), false);
             equals(isObject([]), false);
+            equals(isObject(null), false);
+            equals(isObject(undefined), false);
         });
 
         test('isArray()', function() {
@@ -58,6 +64,8 @@
             equals(haveProperty(obj, 'name'), false);
             equals(haveProperty({}, 'id'), false);
             equals(haveProperty(function() { this.id = 1}, 'id'), false);
+            equals(haveProperty({}, null), false);
+            equals(haveProperty({}, undefined), false);
         });
 
         test('copy()', function() {
@@ -69,6 +77,14 @@
             copy(source, target);
             equals(target.id, 1);
             equals(target.name, 'zhangsan');
+
+            var option = new Option('zhangsan', '1');
+            option.buid = 1;
+            target = {};
+            copy(option, target);
+            equals(target.buid, 1);
+            equals(target.value, '1');
+            equals(target.text, 'zhangsan');
         });
 
         test('inScope()', function() {
