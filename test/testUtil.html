@@ -79,12 +79,12 @@
             equals(target.name, 'zhangsan');
 
             var option = new Option('zhangsan', '1');
-            option.buid = 1;
-            target = {};
-            copy(option, target);
-            equals(target.buid, 1);
-            equals(target.value, '1');
-            equals(target.text, 'zhangsan');
+            target = {buid:1};
+            copy(target, option);
+            equals(option.buid, 1);
+
+            var clone = option.cloneNode(true);
+            equals(option.buid, 1);
         });
 
         test('inScope()', function() {
@@ -92,6 +92,7 @@
             equals(inScope(0, 0, 5), true);
             equals(inScope(5, 0, 5), false);
             equals(inScope(9, 0, 5), false);
+            equals(inScope(-1, 0, 1), false);
         });
     </script>
 </head>

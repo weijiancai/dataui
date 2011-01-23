@@ -10,7 +10,7 @@
     <script type="text/javascript" src="../dataui/util.js"></script>
     <script type="text/javascript" src="../dataui/select.js"></script>
     <script type="text/javascript">
-        test('init()', function() {
+        /*test('init()', function() {
             var s0 = $S('S0');
             equals(s0.superSelect, undefined);
             equals(s0.related, undefined);
@@ -20,42 +20,50 @@
             equals(s0.optionValue, undefined);
             equals(s0.optionText, undefined);
             equals(s0.subSelect, undefined);
-            equals(s0.subMap, undefined);
+            //equals(s0.subMap, undefined);
             equals(s0.map.size(), 0);
 
             s0 = $S({
                 id : 'S0',
-                related : 's2',
+                //related : 's2',
                 url : 'http://www.baidu.com',
                 urlData : {search: 'zhangsan'},
                 optionValue : 'codeId',
                 optionText : 'codeDesc',
-                subUrl : 'http://www.google.com',
-                subUrlData : {search: 'lisi'},
-                subRelated : 's3',
-                subParamName : 'big',
-                subOptionValue : 'codeId',
-                subOptionText : 'codeDesc',
+                //subUrl : 'http://www.google.com',
+                //subUrlData : {search: 'lisi'},
+                //subRelated : 's3',
+                //subParamName : 'big',
+                //subOptionValue : 'codeId',
+                //subOptionText : 'codeDesc',
                 subSelect : 's1',
-                sortType : SORT_TEXT,
-                subSortType : SORT_VAL
+                sortType : SORT_TEXT
+                //subSortType : SORT_VAL
             });
 
-            equals(s0.related, 's2');
+            //equals(s0.related, 's2');
             equals(s0.sortType, 2);
             equals(s0.url, 'http://www.baidu.com');
             same(s0.urlData, {search: 'zhangsan'});
             equals(s0.optionValue, 'codeId');
             equals(s0.optionText, 'codeDesc');
 
-            var s1 = $S('s1');
-            equals(s1.related, 's3');
+            var s1 = $S({
+                id : 's1',
+                related : 's2',
+                sortType : SORT_VAL,
+                url : 'http://www.google.com',
+                urlData : {search: 'lisi'},
+                optionValue : 'codeId',
+                optionText : 'codeDesc'
+            });
+            equals(s1.related, 's2');
             equals(s1.sortType, 1);
             equals(s1.url, 'http://www.google.com');
             same(s1.urlData, {search: 'lisi'});
             equals(s1.optionValue, 'codeId');
             equals(s1.optionText, 'codeDesc');
-            equals(s1.superSelect, 'S0');
+            //equals(s1.superSelect, 'S0');
         });
 
         test('length', function() {
@@ -164,17 +172,17 @@
             mselect.selectedIndexs([1,6,7]);
             equals(mselect.text(), '木浆,软木,原木');
 
-        });
+        });*/
 
-        test('empty()', function() {
+        /*test('empty()', function() {
             var select = $S('SmallFreightType');
             select.empty();
             equals(select.length, 0);
             equals(select.values(), '');
             equals(select.texts(), '');
-        });
+        });*/
 
-        test('append()', function() {
+        /*test('append()', function() {
             var select = $S('SmallFreightType');
             select.append('882', '报纸、书籍、杂志等其他印刷品');
             equals(select.length, 1);
@@ -184,9 +192,9 @@
             equals(select.length, 3);
             select.append('255', '废纸');
             equals(select.length, 4);
-        });
+        });*/
 
-        test('del()', function() {
+        /*test('del()', function() {
             var select = $S('SmallFreightType');
             select.del(3);
             equals(select.length, 3);
@@ -196,7 +204,7 @@
             equals(select.length, 1);
             select.del('882', '报纸、书籍、杂志等其他印刷品');
             equals(select.length, 0);
-        });
+        });*/
 
         test('load()', function() {
             var s01 =  $S('S01');
@@ -204,16 +212,22 @@
             s01.load(data);
             equals(s01.values(), '报纸,木浆,软木,原木,纸浆,人造板材');
             data = [{codeId:882,codeDesc:'报纸',buid:1},{codeId:876,codeDesc:'木浆',buid:2},{codeId:875,codeDesc:'软木',buid:3},{codeId:874,codeDesc:'原木',buid:4},{codeId:880,codeDesc:'纸浆',buid:5},{codeId:878,codeDesc:'人造板材',buid:6}];
-            var s02 = $S({id:'S02',optionValue:'codeId',optionText:'codeDesc'});
+            var s02 = $S({id:'S02',optionValue:'codeId',optionText:'codeDesc',isMount:true});
             s02.load(data);
             equals(s02.values(), '882,876,875,874,880,878');
             equals(s02.texts(), '报纸,木浆,软木,原木,纸浆,人造板材');
-            /*equals(s02.options[0].buid, 1);
+            equals(s02.options[0].buid, 1);
             equals(s02.options[1].buid, 2);
             equals(s02.options[2].buid, 3);
             equals(s02.options[3].buid, 4);
             equals(s02.options[4].buid, 5);
-            equals(s02.options[5].buid, 6);*/
+            equals(s02.options[5].buid, 6);
+            /*equals(s02.options[0].data.buid, 1);
+            equals(s02.options[1].data.buid, 2);
+            equals(s02.options[2].data.buid, 3);
+            equals(s02.options[3].data.buid, 4);
+            equals(s02.options[4].data.buid, 5);
+            equals(s02.options[5].data.buid, 6);*/
 
             s02.save('code');
             data = ["界","门","纲","目","科","属","种"];
@@ -221,10 +235,13 @@
             equals(s02.values(), "界,门,纲,目,科,属,种");
             equals(s02.texts(), "界,门,纲,目,科,属,种");
             s02.save('category');
-            s02.load('code');
+            equals(s02.map.size(), 2);
+            equals(s02.map.keys().join(), 'code,category');
+            same(s02.map.get('code')[0], {codeId:882,codeDesc:'报纸',buid:1});
+            /*s02.load('code');
             equals(s02.values(), '882,876,875,874,880,878');
             equals(s02.texts(), '报纸,木浆,软木,原木,纸浆,人造板材');
-            //equals(s02.options[0].buid, 1);
+            equals(s02.options[0].buid, 1);*/
         });
 
         test('sort()', function() {
@@ -237,13 +254,65 @@
             equals(select.texts(), '报纸、书籍、杂志等其他印刷品,木浆,其他木料、木粉,其他木制品、软木制品,其他纸制品,人造板材、胶合板、纤维板、木丝板、刨花板等木材加工品,软木,原木,纸、纸板,纸浆');
         });
 
-        test('url', function() {
+        /*test('url', function() {
             var s5 = $S({
                 id : 's5',
                 url : 'category.json'
             });
-            equals(s5.values(), "界,门,纲,目,科,属,种");
-            equals(s5.texts(), "界,门,纲,目,科,属,种");
+            stop();
+            setTimeout(function() {
+                equals(s5.values(), "界,门,纲,目,科,属,种");
+                equals(s5.texts(), "界,门,纲,目,科,属,种");
+                start();
+            },2000);
+        });*/
+
+        test('onchange()', function() {
+            var s6 = $S({
+                id : 's6',
+                related : 's7'
+            });
+            var s5 = $S({
+                id : 's5',
+                url : 'category.json',
+                onchange : function(value) {
+                    //alert(value);
+                    var url = '';
+                    switch (value) {
+                        case '界' :
+                            url = 'jie.json';
+                            break;
+                        case '门' :
+                            url = 'men.json';
+                            break;
+                        case '纲' :
+                            url = 'gang.json';
+                            break;
+                        case '目' :
+                            url = 'mu.json';
+                            break;
+                        case '科' :
+                            url = 'ke.json';
+                            break;
+                        case '属' :
+                            url = 'shu.json';
+                            break;
+                        case '种' :
+                            url = 'zhong.json';
+                            break;
+                    }
+                    $S({
+                        id : 's6',
+                        url : url
+                    });
+                },
+                onSuccess : function (data) {
+                    $S({
+                        id : 's6',
+                        url : 'jie.json'
+                    });
+                }
+            });
         });
     </script>
 </head>
@@ -324,8 +393,8 @@
     </select>
 
     <select id="s5"></select>
-    <select id="s6"></select>
-    <select id="s7"></select>
+    <select id="s6" size="6" style="width:80px"></select>
+    <select id="s7" size="6" style="width:80px"></select>
 </div>
 
 <div>

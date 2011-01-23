@@ -22,7 +22,11 @@ var isNumber = function (value) {
  * @return boolean true 对象类型，false 非对象类型
  */
 var isObject = function (value) {
-    return Boolean(value) && typeof value === 'object' && ! isArray(value);
+    if(value) {
+        return typeof value === 'object' && ! isArray(value);
+    } else {
+        return false;
+    }
 };
 
 /**
@@ -85,11 +89,11 @@ var copy = function (source, target) {
 var inScope = function (value, start, end) {
     if(! isNumber(value)) return false;
 
-    if(start && end) {
+    if(isNumber(start) && isNumber(end)) {
         return value >= start && value < end;
-    } else if(start) {
+    } else if(isNumber(start)) {
         return value >= start;
-    } else if(end) {
+    } else if(isNumber(end)) {
         return value < end;
     }
 

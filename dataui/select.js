@@ -22,76 +22,67 @@ function Select(id, setting) {
         return null;
     }
 
+    obj.map = new Map(); //用于存储数据的Map对象
+
     obj.init = function(setting) {
-        obj.map = new Map(); //用于存储数据的Map对象
+        var thisObj = this;
+
         if(setting) {
-            obj.superSelect = setting.superSelect;
-            obj.related = setting.related;
-            obj.sortType = setting.sortType;
-            obj.url = setting.url;
-            obj.urlData = setting.urlData;
-            obj.optionValue = setting.optionValue;
-            obj.optionText = setting.optionText;
+            this.superSelect = setting.superSelect || this.superSelect;
+            this.related = setting.related || this.related;
+            this.sortType = setting.sortType || this.sortType;
+            this.url = setting.url || this.url;
+            this.urlData = setting.urlData || this.urlData;
+            this.optionValue = setting.optionValue || this.optionValue;
+            this.optionText = setting.optionText || this.optionText;
+            this.onSuccess = setting.onSuccess || this.onSuccess;
 
-            obj.subSelect = setting.subSelect ? $S({
-                id : setting.subSelect,
-                url : setting.subUrl,
-                urlData : setting.subUrlData,
-                related : setting.subRelated,
-                optionValue : setting.subOptionValue,
-                optionText : setting.subOptionText,
-                paramName : setting.subParamName,
-                superSelect : obj.id,
-                sortType : setting.subSortType
-            }) : null;  // 此Select的下级Select
-
-            if(obj.subSelect) {
-                obj.subMap = obj.subMap ? obj.subMap : new Map();
+            if(setting.onchange) {
+                this.onchange = function() {
+                    setting.onchange(thisObj.value);
+                };
             }
         }
 
-        if(obj.related) {
-            obj.ondblclick = function() {
-                leftToRight(obj.id, obj.related, obj.sortType);
+        if(this.related) {
+            this.ondblclick = function() {
+                leftToRight(thisObj.id, thisObj.related, thisObj.sortType);
             };
-            $S(obj.related).ondblclick = function() {
-                rightToLeft(obj.related, obj.id, obj.sortType);
+            $S(this.related).ondblclick = function() {
+                rightToLeft(thisObj.related, thisObj.id, thisObj.sortType);
             }
         }
 
-        if(obj.url) {
-            $.post(obj.url, obj.urlData, function(data) {
-                obj.load(data);
-
-                if(obj.subSelect) {
-                    loadSubSelect(obj.options[0].value);
+        if(this.url) {
+            var upKey = this.mapKey; // 记录上一次的url key值
+            var mapKey = this.url;  // 记录本次的url key值
+            if(this.urlData) {
+                $A(this.urlData).each(function(name, value) {
+                    mapKey += value;
+                });
+            }
+            var cacheObj = this.map.get(mapKey);
+            if(cacheObj) {
+                if(upKey) {
+                    thisObj.save(upKey);
                 }
-            }, "json");
-        }
-
-        if(obj.subSelect) {
-            obj.onchange = function() {
-                if(obj.subSelect) {
-                    var cache = obj.subMap.get(obj.value);
-                    if(cache) {
-                        obj.subSelect.load(cache);
-                    } else {
-                        loadSubSelect(obj.value);
+                thisObj.load(cacheObj);
+                thisObj.mapKey = mapKey;
+            } else {
+                $.post(this.url, this.urlData, function(data) {
+                    if(upKey) {
+                        thisObj.save(upKey);
                     }
-                }
+                    thisObj.load(data);
+                    thisObj.mapKey = mapKey;
+
+                    if(thisObj.onSuccess) {
+                        thisObj.onSuccess(data);
+                    }
+                }, "json");
             }
         }
 
-        function loadSubSelect(para) {
-            var param = {};
-            if(obj.subParamName) {
-                param[obj.subParamName] = encodeURI(para);
-            }
-            $.post(obj.subUrl, param, function(json) {
-                obj.subSelect.load(json);
-                obj.subMap.put(para, json);
-            }, 'json');
-        }
     };
 
     obj.init(setting);
@@ -126,18 +117,18 @@ function Select(id, setting) {
     };
 
     obj.empty = function() {
-        obj.options.length = 0;
+        this.options.length = 0;
     };
 
     obj.clearSelect = function() {
-        if(obj.multiple === true) {
-            $A(obj.options).each(function(option) {
+        if(this.multiple === true) {
+            $A(this.options).each(function(option) {
                 if(option.selected === true) {
                     option.selected = false;
                 }
             });
-        } else {
-            obj.options[0].selected = true;
+        } else if(this.options[0]) {
+            this.options[0].selected = true;
         }
     };
 
@@ -192,15 +183,18 @@ function Select(id, setting) {
     };
 
     obj.append = function(value, text, callback) {
-        var object = value, option;
+        var object = value, option, isOption;
         if(isObject(object)) {
-            if(object.value && object.text && object.index) {  // Option 对象
+            if(object.value && object.text) {  // Option 对象
                 value = object.value;
                 text = object.text;
+                isOption = true;
+                //data = object.data;
+                //alert("option: " + data);
             } else {
-                var ov = obj.optionValue, ot = obj.optionText;
-                var hov = haveProperty(object, obj.optionValue);
-                var hot = haveProperty(object, obj.optionText);
+                var ov = this.optionValue, ot = this.optionText;
+                var hov = haveProperty(object, this.optionValue);
+                var hot = haveProperty(object, this.optionText);
                 if(ov && ot && hov && hot) {
                     value = object[ov];
                     text = object[ot];
@@ -213,32 +207,42 @@ function Select(id, setting) {
                 }
             }
         }
-        if(obj.exists(value, text))  return;
+        if(this.exists(value, text))  return;
 
-        if(value && text) {
-            option = new Option(text, value);
-        } else if (value) {
-            option = new Option(value, value);
-        } else if (text) {
-            option = new Option(text, text);
+        if(isOption) {
+            this.options.add(object);
         } else {
-            return;
+            if(value && text) {
+                option = new Option(text, value);
+            } else if (value) {
+                option = new Option(value, value);
+            } else if (text) {
+                option = new Option(text, text);
+            } else {
+                return;
+            }
+            copy(object, option);
+            this.options.add(option);
         }
-        //copy(object, option);
 
-        var superValue;
-        if(obj.superSelect) {
+        /*if(!isOption) {
+          copy(object, option);
+        }*/
+
+
+        /*var superValue;
+        if(this.superSelect) {
             var superSelect = $S(obj.superSelect);
             superValue = obj.map.get(option.value);
             if(!superValue) {
                 obj.map.put(option.value, superSelect.value);
             }
-        }
-        if(callback) {
+        }*/
+        /*if(callback) {
             callback(option, superValue);
         } else {
-            obj.options.add(option);
-        }
+            this.options.add(option);
+        }*/
     };
 
     obj.del = function(value, text) {
@@ -314,26 +318,30 @@ function Select(id, setting) {
     };
 
     obj.load = function (data) {
-        obj.empty();
-        if(isArray(data)) {
-            if(isEmptyArray(data)) return;
-        } else {
-            data = obj.map.get(data);
-        }
+        var thisObj = this;
+        if(data) {
+            this.empty();
+            if(isArray(data)) {
+                if(isEmptyArray(data)) return;
+            } else {
+                data = this.map.get(data);
+            }
 
-        $A(data).each(function(object) {
-            obj.append(object);
-        });
+            $A(data).each(function(object) {
+                thisObj.append(object);
+            });
 
-        if(obj.sortType) {
-            obj.sort(obj.sortType);
+            if(this.sortType) {
+                this.sort(this.sortType);
+            }
         }
     };
 
     obj.save = function (key) {
         var array = [];
         $A(obj.options).each(function(option) {
-            array.push(new Option(option.text, option.value));
+            //array.push(new Option(option.text, option.value));
+            array.push(option.cloneNode(true));
         });
         obj.map.put(key, array);
     };
@@ -348,7 +356,7 @@ function leftToRight(left, right, sortType) {
     var options = leftSelect.selectedOptions();
     var values = [], i, idx, isSelect = true;
     for(i = 0; i < options.length; i++) {
-        rightSelect.append(options[i].value, options[i].text, function(option, superValue) {
+        /*rightSelect.append(options[i].value, options[i].text, function(option, superValue) {
             if(rightSelect.superSelect) {
                 var superSelect = $S(rightSelect.superSelect);
                 if(superValue && superValue === superSelect.value) {
@@ -366,7 +374,10 @@ function leftToRight(left, right, sortType) {
             } else {
                 rightSelect.options.add(option);
             }
-        });
+        });*/
+        var option = options[i];
+        option.mapKey = leftSelect.mapKey;
+        rightSelect.append(option);
         leftSelect.del(options[i].index);
         values.push(options[i].value);
     }
@@ -384,7 +395,37 @@ function leftToRight(left, right, sortType) {
 }
 
 function rightToLeft(right, left, sortType) {
-    leftToRight(right, left, sortType);
+    //leftToRight(right, left, sortType);
+    var leftSelect = $S(left);
+    var rightSelect = $S(right);
+
+    var options = rightSelect.selectedOptions();
+    var values = [], i, idx, isSelect = true;
+    for(i = 0; i < options.length; i++) {
+        var mapKey = options[i].mapKey;
+        if(mapKey === leftSelect.mapKey) {
+           leftSelect.append(options[i]);
+        } else {
+            var cacheObject = leftSelect.map.get(mapKey);
+            if(cacheObject) {
+                cacheObject.push(options[i]);
+            }
+        }
+
+        rightSelect.del(options[i].index);
+        values.push(options[i].value);
+    }
+
+    if(sortType) {
+        leftSelect.sort(sortType);
+    }
+    if(isSelect) {
+        leftSelect.clearSelect();
+        for(i = 0; i < values.length; i++) {
+            idx = leftSelect.indexOfVal(values[i]);
+            leftSelect.selectedIndexs(idx);
+        }
+    }
 }
 
 function allToRight(left, right, sortType) {
@@ -447,8 +488,10 @@ var $S = function(setting) {
         id = setting.id;
     }
     obj = selectMap.get(id);
-    if(obj && isObject(setting)) {
-        obj.init(setting);
+    if(obj) {
+        if(isObject(setting)) {
+            obj.init(setting);
+        }
     } else {
         obj = new Select(id, setting);
         if(obj) {
