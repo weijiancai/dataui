@@ -108,31 +108,31 @@ var inScope = function (value, start, end) {
 var $A = function ( data ) {
     this.find = function(property, value, prop) {
         if(property && value && prop) {
-            return this.each(function(object) {
-                if(object[property] === value) {
-                    return 'all' === prop ? object : object[prop];
+            return this.each(function() {
+                if(this[property] === value) {
+                    return 'all' === prop ? this : this[prop];
                 } else {
                     return null;
                 }
             });
         } else if(property && value) {
             var obj;
-            this.each(function(object) {
-                if(object[property] === value) {
-                    obj = object;
+            this.each(function() {
+                if(this[property] === value) {
+                    obj = this;
                     return false;
                 }
             });
             return obj;
         } else {
-            return this.each(function(option) {
-                return option[property];
+            return this.each(function() {
+                return this[property];
             });
         }
     };
 
     this.each = function(callback) {
-        var name, i = 0, array = [], returnValue, args = arguments[2],
+        var name, i = 0, array = [], returnValue, args = arguments[1],
                 length = data.length,
                 isObj = length === undefined;
 
@@ -168,7 +168,7 @@ var $A = function ( data ) {
                 }
             } else {
                 for ( ; i < length; i++) {
-                    returnValue = callback( data[ i ], i);
+                    returnValue = callback.call( data[ i ], i, data[i]);
                     if (returnValue  === false ) {
                         break;
                     } else if (returnValue !== null) {
